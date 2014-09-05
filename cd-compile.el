@@ -22,15 +22,22 @@
 (put 'cd-compile-directory 'safe-local-variable 'stringp)
 
 ;;;###autoload
-(defun cd-compile()
+(defun cd-compile(&optional arg)
   "Run compile in a specific directory.
 If cd-compile-directory is set then compile will be run in that directory,
-otherwise the user will be prompted to enter a directory."
-  (interactive)
-  (let ((default-directory
-          (if cd-compile-directory
-              (file-name-as-directory cd-compile-directory)
-            (read-directory-name "Compile directory: "))))
+otherwise the user will be prompted to enter a directory. After the directory
+is selected, it will be cached for subsequent compile without prompting.
+
+If ARG is supplied, prompt for new directory and compile command."
+  (interactive "P")
+  (let* ((default-directory
+           (if (and cd-compile-directory (not arg))
+               (file-name-as-directory cd-compile-directory)
+             (read-directory-name "Compile directory: "))))
+    (setq cd-compile-directory default-directory)
+    (if arg
+        (setq-local compilation-read-command t)
+      (setq-local compilation-read-command nil))
     (call-interactively 'compile)))
 
 (provide 'cd-compile)
